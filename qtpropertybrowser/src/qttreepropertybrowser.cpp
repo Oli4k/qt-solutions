@@ -19,7 +19,8 @@
 QT_BEGIN_NAMESPACE
 #endif
 
-class QtPropertyEditorView;
+// Include header with class declarations for MOC processing
+#include "qttreepropertybrowser_p.h"
 
 class QtTreePropertyBrowserPrivate
 {
@@ -79,26 +80,7 @@ private:
 };
 
 // ------------ QtPropertyEditorView
-class QtPropertyEditorView : public QTreeWidget
-{
-    Q_OBJECT
-public:
-    QtPropertyEditorView(QWidget *parent = 0);
-
-    void setEditorPrivate(QtTreePropertyBrowserPrivate *editorPrivate)
-        { m_editorPrivate = editorPrivate; }
-
-    QTreeWidgetItem *indexToItem(const QModelIndex &index) const
-        { return itemFromIndex(index); }
-
-protected:
-    void keyPressEvent(QKeyEvent *event);
-    void mousePressEvent(QMouseEvent *event);
-    void drawRow(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
-
-private:
-    QtTreePropertyBrowserPrivate *m_editorPrivate;
-};
+// Class definition moved to qttreepropertybrowser_p.h for MOC processing
 
 QtPropertyEditorView::QtPropertyEditorView(QWidget *parent) :
     QTreeWidget(parent),
@@ -178,62 +160,32 @@ void QtPropertyEditorView::mousePressEvent(QMouseEvent *event)
     }
 }
 
-// ------------ QtPropertyEditorDelegate
-class QtPropertyEditorDelegate : public QItemDelegate
+void QtPropertyEditorView::setEditorPrivate(QtTreePropertyBrowserPrivate *editorPrivate)
 {
-    Q_OBJECT
-public:
-    QtPropertyEditorDelegate(QObject *parent = 0)
-        : QItemDelegate(parent), m_editorPrivate(0), m_editedItem(0), m_editedWidget(0), m_disablePainting(false)
-        {}
+    m_editorPrivate = editorPrivate;
+}
 
-    void setEditorPrivate(QtTreePropertyBrowserPrivate *editorPrivate)
-        { m_editorPrivate = editorPrivate; }
+QTreeWidgetItem *QtPropertyEditorView::indexToItem(const QModelIndex &index) const
+{
+    return itemFromIndex(index);
+}
 
-    QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option,
-            const QModelIndex &index) const;
+// ------------ QtPropertyEditorDelegate
+// Class definition moved to qttreepropertybrowser_p.h for MOC processing
 
-    void updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option,
-            const QModelIndex &index) const;
+QtPropertyEditorDelegate::QtPropertyEditorDelegate(QObject *parent)
+    : QItemDelegate(parent),
+      m_editorPrivate(0),
+      m_editedItem(0),
+      m_editedWidget(0),
+      m_disablePainting(false)
+{
+}
 
-    void paint(QPainter *painter, const QStyleOptionViewItem &option,
-            const QModelIndex &index) const;
-
-    QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const;
-
-    void setModelData(QWidget *, QAbstractItemModel *,
-            const QModelIndex &) const {}
-
-    void setEditorData(QWidget *, const QModelIndex &) const {}
-
-    bool eventFilter(QObject *object, QEvent *event);
-    void closeEditor(QtProperty *property);
-
-    QTreeWidgetItem *editedItem() const { return m_editedItem; }
-
-protected:
-
-    void drawDecoration(QPainter *painter, const QStyleOptionViewItem &option,
-            const QRect &rect, const QPixmap &pixmap) const;
-    void drawDisplay(QPainter *painter, const QStyleOptionViewItem &option,
-            const QRect &rect, const QString &text) const;
-
-private slots:
-    void slotEditorDestroyed(QObject *object);
-
-private:
-    int indentation(const QModelIndex &index) const;
-
-    typedef QMap<QWidget *, QtProperty *> EditorToPropertyMap;
-    mutable EditorToPropertyMap m_editorToProperty;
-
-    typedef QMap<QtProperty *, QWidget *> PropertyToEditorMap;
-    mutable PropertyToEditorMap m_propertyToEditor;
-    QtTreePropertyBrowserPrivate *m_editorPrivate;
-    mutable QTreeWidgetItem *m_editedItem;
-    mutable QWidget *m_editedWidget;
-    mutable bool m_disablePainting;
-};
+void QtPropertyEditorDelegate::setEditorPrivate(QtTreePropertyBrowserPrivate *editorPrivate)
+{
+    m_editorPrivate = editorPrivate;
+}
 
 int QtPropertyEditorDelegate::indentation(const QModelIndex &index) const
 {
@@ -446,8 +398,8 @@ void QtTreePropertyBrowserPrivate::init(QWidget *parent)
     m_delegate = new QtPropertyEditorDelegate(parent);
     m_delegate->setEditorPrivate(this);
     m_treeWidget->setItemDelegate(m_delegate);
-    m_treeWidget->header()->setMovable(false);
-    m_treeWidget->header()->setResizeMode(QHeaderView::Stretch);
+    m_treeWidget->header()->setSectionsMovable(false);
+    m_treeWidget->header()->setSectionResizeMode(QHeaderView::Stretch);
 
     m_expandIcon = drawIndicatorIcon(q_ptr->palette(), q_ptr->style());
 
@@ -859,7 +811,7 @@ void QtTreePropertyBrowser::setResizeMode(QtTreePropertyBrowser::ResizeMode mode
         case QtTreePropertyBrowser::Stretch:
         default:                                      m = QHeaderView::Stretch;          break;
     }
-    d_ptr->m_treeWidget->header()->setResizeMode(m);
+    d_ptr->m_treeWidget->header()->setSectionResizeMode(m);
 }
 
 /*!
@@ -1039,4 +991,5 @@ QT_END_NAMESPACE
 #endif
 
 #include "moc_qttreepropertybrowser.cpp"
-#include "qttreepropertybrowser.moc"
+// MOC included in qttreepropertybrowser.cpp
+#include "moc_qttreepropertybrowser_p.cpp"

@@ -417,3 +417,4 @@ bool QtKeySequenceEdit::event(QEvent *e)
 #if QT_VERSION >= 0x040400
 QT_END_NAMESPACE
 #endif
+#include "moc_qtpropertybrowserutils_p.cpp"

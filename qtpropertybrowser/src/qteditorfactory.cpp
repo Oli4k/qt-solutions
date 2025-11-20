@@ -3,6 +3,7 @@
 
 
 #include "qteditorfactory.h"
+#include "qteditorfactory_p.h"
 #include "qtpropertybrowserutils_p.h"
 #include <QSpinBox>
 #include <QScrollBar>
@@ -1598,35 +1599,11 @@ void QtKeySequenceEditorFactory::disconnectPropertyManager(QtKeySequenceProperty
                 this, SLOT(slotPropertyChanged(QtProperty *, const QKeySequence &)));
 }
 
+// Include header with class declarations for MOC processing
+#include "qteditorfactory_p.h"
+
 // QtCharEdit
-
-class QtCharEdit : public QWidget
-{
-    Q_OBJECT
-public:
-    QtCharEdit(QWidget *parent = 0);
-
-    QChar value() const;
-    bool eventFilter(QObject *o, QEvent *e);
-public Q_SLOTS:
-    void setValue(const QChar &value);
-Q_SIGNALS:
-    void valueChanged(const QChar &value);
-protected:
-    void focusInEvent(QFocusEvent *e);
-    void focusOutEvent(QFocusEvent *e);
-    void keyPressEvent(QKeyEvent *e);
-    void keyReleaseEvent(QKeyEvent *e);
-    void paintEvent(QPaintEvent *);
-    bool event(QEvent *e);
-private slots:
-    void slotClearChar();
-private:
-    void handleKeyEvent(QKeyEvent *e);
-
-    QChar m_value;
-    QLineEdit *m_lineEdit;
-};
+// Class definition moved to qteditorfactory_p.h for MOC processing
 
 QtCharEdit::QtCharEdit(QWidget *parent)
     : QWidget(parent),  m_lineEdit(new QLineEdit(this))
@@ -2230,32 +2207,8 @@ void QtCursorEditorFactory::disconnectPropertyManager(QtCursorPropertyManager *m
 
 // QtColorEditWidget
 
-class QtColorEditWidget : public QWidget {
-    Q_OBJECT
-
-public:
-    QtColorEditWidget(QWidget *parent);
-
-    bool eventFilter(QObject *obj, QEvent *ev);
-
-public Q_SLOTS:
-    void setValue(const QColor &value);
-
-Q_SIGNALS:
-    void valueChanged(const QColor &value);
-
-protected:
-    void paintEvent(QPaintEvent *);
-
-private Q_SLOTS:
-    void buttonClicked();
-
-private:
-    QColor m_color;
-    QLabel *m_pixmapLabel;
-    QLabel *m_label;
-    QToolButton *m_button;
-};
+// QtColorEditWidget
+// Class definition moved to qteditorfactory_p.h for MOC processing
 
 QtColorEditWidget::QtColorEditWidget(QWidget *parent) :
     QWidget(parent),
@@ -2438,33 +2391,7 @@ void QtColorEditorFactory::disconnectPropertyManager(QtColorPropertyManager *man
 }
 
 // QtFontEditWidget
-
-class QtFontEditWidget : public QWidget {
-    Q_OBJECT
-
-public:
-    QtFontEditWidget(QWidget *parent);
-
-    bool eventFilter(QObject *obj, QEvent *ev);
-
-public Q_SLOTS:
-    void setValue(const QFont &value);
-
-Q_SIGNALS:
-    void valueChanged(const QFont &value);
-
-protected:
-    void paintEvent(QPaintEvent *);
-
-private Q_SLOTS:
-    void buttonClicked();
-
-private:
-    QFont m_font;
-    QLabel *m_pixmapLabel;
-    QLabel *m_label;
-    QToolButton *m_button;
-};
+// Class definition moved to qteditorfactory_p.h for MOC processing
 
 QtFontEditWidget::QtFontEditWidget(QWidget *parent) :
     QWidget(parent),
@@ -2483,7 +2410,7 @@ QtFontEditWidget::QtFontEditWidget(QWidget *parent) :
     m_button->setFixedWidth(20);
     setFocusProxy(m_button);
     setFocusPolicy(m_button->focusPolicy());
-    m_button->setText(tr("..."));
+    updateButtonText();
     m_button->installEventFilter(this);
     connect(m_button, SIGNAL(clicked()), this, SLOT(buttonClicked()));
     lt->addWidget(m_button);
@@ -2497,31 +2424,23 @@ void QtFontEditWidget::setValue(const QFont &f)
         m_font = f;
         m_pixmapLabel->setPixmap(QtPropertyBrowserUtils::fontValuePixmap(f));
         m_label->setText(QtPropertyBrowserUtils::fontValueText(f));
+        updateButtonText();
     }
 }
 
 void QtFontEditWidget::buttonClicked()
 {
     bool ok = false;
-    QFont newFont = QFontDialog::getFont(&ok, m_font, this, tr("Select Font"));
+    QFont newFont = QFontDialog::getFont(&ok, m_font, this);
     if (ok && newFont != m_font) {
-        QFont f = m_font;
-        // prevent mask for unchanged attributes, don't change other attributes (like kerning, etc...)
-        if (m_font.family() != newFont.family())
-            f.setFamily(newFont.family());
-        if (m_font.pointSize() != newFont.pointSize())
-            f.setPointSize(newFont.pointSize());
-        if (m_font.bold() != newFont.bold())
-            f.setBold(newFont.bold());
-        if (m_font.italic() != newFont.italic())
-            f.setItalic(newFont.italic());
-        if (m_font.underline() != newFont.underline())
-            f.setUnderline(newFont.underline());
-        if (m_font.strikeOut() != newFont.strikeOut())
-            f.setStrikeOut(newFont.strikeOut());
-        setValue(f);
+        setValue(newFont);
         emit valueChanged(m_font);
     }
+}
+
+void QtFontEditWidget::updateButtonText()
+{
+    m_button->setText(tr("..."));
 }
 
 bool QtFontEditWidget::eventFilter(QObject *obj, QEvent *ev)
@@ -2663,5 +2582,5 @@ void QtFontEditorFactory::disconnectPropertyManager(QtFontPropertyManager *manag
 QT_END_NAMESPACE
 #endif
 
-#include "moc_qteditorfactory.cpp"
 #include "qteditorfactory.moc"
+#include "moc_qteditorfactory_p.cpp"
